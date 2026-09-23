@@ -1,0 +1,13 @@
+{
+  "name": "sf-sv",
+  "owner": {
+    "name": "Nisar Khan"
+  },
+  "plugins": [
+    {
+      "name": "sf-solution-verifier",
+      "source": "./plugins/sf-solution-verifier",
+      "description": "Fact-check Salesforce solution documents against official Salesforce sources using Context7 and Salesforce-only web lookups."
+    }
+  ]
+}
