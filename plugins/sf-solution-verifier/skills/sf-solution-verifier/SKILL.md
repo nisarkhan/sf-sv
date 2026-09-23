@@ -7,6 +7,17 @@ allowed-tools: Read, Write, WebSearch, WebFetch
 
 # Salesforce Solution Verifier
 
+SKILL VERSION: 1.2.0 (2026-09-23)
+
+## Step 0: Announce the version
+Before anything else, print exactly this line:
+
+    Running sf-solution-verifier skill v1.2.0
+
+This line is hardcoded in this file. If the user expected a different
+version, the plugin cache is stale and they should run
+/plugin marketplace update sf-sv, then restart Claude Code.
+
 Document to verify: $ARGUMENTS
 If no path was given, ask the user which file to verify.
 
@@ -71,7 +82,8 @@ ${CLAUDE_PLUGIN_ROOT}/assets/report-template.html
 
 1. Copy the template to <document-name>-verification.html in the same folder
    as the document being verified.
-2. Replace ONLY the JSON inside <script id="report-data">. Keep every key.
+2. Replace ONLY the JSON inside <script id="report-data">. Keep every key,
+   and set "skillVersion" to 1.2.0 so the report records what produced it.
 3. Never edit the CSS, the JavaScript, or the page structure. Never restyle,
    recolour, or "improve" the layout. The template carries the team's house
    style: gradient hero band, numbered section badges, white cards with
