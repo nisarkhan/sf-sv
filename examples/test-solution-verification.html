@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solution Verification Report</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --bg-card: #ffffff;
+    --text: #1c1f24;
+    --text-muted: #5a6270;
+    --border: #e2e5ea;
+    --accent: #0b5cff;
+    --confirmed: #147a3d;
+    --confirmed-bg: #e6f6ec;
+    --partly: #9a6b00;
+    --partly-bg: #fdf3d9;
+    --contradicted: #b3261e;
+    --contradicted-bg: #fbe8e6;
+    --outdated: #b3261e;
+    --outdated-bg: #fbe8e6;
+    --notfound: #5a6270;
+    --notfound-bg: #eceef1;
+    --account: #6b3fa0;
+    --account-bg: #f1e9fa;
+    --code-bg: #eef0f3;
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a;
+    --bg-card: #1c1f24;
+    --text: #e7e9ec;
+    --text-muted: #9aa1ab;
+    --border: #2c3036;
+    --accent: #5b9dff;
+    --confirmed: #4ade80;
+    --confirmed-bg: #123420;
+    --partly: #f2c14e;
+    --partly-bg: #3a2f0d;
+    --contradicted: #ff6b64;
+    --contradicted-bg: #3a1614;
+    --outdated: #ff6b64;
+    --outdated-bg: #3a1614;
+    --notfound: #9aa1ab;
+    --notfound-bg: #23262b;
+    --account: #c79bf0;
+    --account-bg: #2b1f3a;
+    --code-bg: #23262b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+  .toggle-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  .meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 4px 0 28px;
+  }
+  .meta code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  .tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .tally-item {
+    flex: 1 1 130px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .tally-item .count {
+    font-size: 1.7rem;
+    font-weight: 700;
+  }
+  .tally-item .label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-confirmed { color: var(--confirmed); background: var(--confirmed-bg); }
+  .badge-partly { color: var(--partly); background: var(--partly-bg); }
+  .badge-contradicted { color: var(--contradicted); background: var(--contradicted-bg); }
+  .badge-outdated { color: var(--outdated); background: var(--outdated-bg); }
+  .badge-notfound { color: var(--notfound); background: var(--notfound-bg); }
+  .badge-account { color: var(--account); background: var(--account-bg); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    background: var(--code-bg);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-size: 0.92rem;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--code-bg); }
+  td.claim-num {
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 28px;
+  }
+  td.claim-text { min-width: 220px; }
+  td.source a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  td.source a:hover { text-decoration: underline; }
+  .tool-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    margin-top: 4px;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+
+  .fix-card, .question-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--outdated);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+  }
+  .question-card { border-left-color: var(--account); }
+  .fix-card h3, .question-card h3 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+  }
+  .fix-card .was {
+    color: var(--contradicted);
+    font-size: 0.88rem;
+    margin: 4px 0;
+  }
+  .fix-card .now {
+    color: var(--confirmed);
+    font-size: 0.88rem;
+    margin: 4px 0;
+  }
+  .fix-card .why {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+  .math-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+  }
+  footer {
+    margin-top: 50px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  @media (max-width: 700px) {
+    table, thead, tbody, tr, th, td { display: block; }
+    thead { display: none; }
+    tbody tr {
+      border-bottom: 8px solid var(--bg);
+      padding: 8px 0;
+    }
+    tbody td {
+      border-bottom: none;
+      padding: 6px 14px;
+    }
+    tbody td::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Solution Verification Report</h1>
+      <p class="subtitle">examples/test-solution.md &mdash; Northwind Health Member Service Agent</p>
+    </div>
+    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">Dark mode</button>
+  </header>
+  <p class="meta">Verified against <code>developer.salesforce.com</code>, <code>help.salesforce.com</code>, <code>www.salesforce.com</code> and Context7 Salesforce documentation only. Verified 2026-09-22.</p>
+
+  <div class="tally" id="tally">
+    <div class="tally-item"><div class="count" style="color:var(--confirmed)">2</div><div class="label">Confirmed</div></div>
+    <div class="tally-item"><div class="count" style="color:var(--partly)">1</div><div class="label">Partly right</div></div>
+    <div class="tally-item"><div class="count" style="color:var(--contradicted)">2</div><div class="label">Contradicted</div></div>
+    <div class="tally-item"><div class="count" style="color:var(--outdated)">2</div><div class="label">Outdated</div></div>
+    <div class="tally-item"><div class="count" style="color:var(--notfound)">0</div><div class="label">Not found</div></div>
+    <div class="tally-item"><div class="count" style="color:var(--account)">1</div><div class="label">Needs account team</div></div>
+  </div>
+
+  <h2>Claim-by-claim results</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Claim</th>
+        <th>Verdict</th>
+        <th>What the source says</th>
+        <th>Source</th>
+        <th>Tool</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="claim-num" data-label="#">1</td>
+        <td class="claim-text" data-label="Claim">An Apex invocable action retrieves member eligibility by running SQL against Data Cloud using <code>ConnectApi.CdpQuery.queryAnsiSqlV2</code>.</td>
+        <td data-label="Verdict"><span class="badge badge-partly">Partly right</span></td>
+        <td data-label="Source says"><code>queryAnsiSqlV2</code> is a real, current Apex method for querying Data Cloud and is preferred over the older <code>queryAnsiSql</code>. However, Salesforce's Data 360 Query Guide says the <strong>sfsqlquery namespace</strong> (SqlStatement, SqlQueueable, etc.) is "the recommended approach for server-side integration," and that <code>ConnectApi.CdpQuery</code> is kept mainly "for backward compatibility."</td>
+        <td class="source" data-label="Source"><a href="https://developer.salesforce.com/docs/data/data-cloud-query-guide/guide/dc-apex-query.html" target="_blank" rel="noopener">Query Data 360 Data with Apex</a><br><a href="https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_ConnectAPI_CdpQuery_static_methods.htm" target="_blank" rel="noopener">CdpQuery Class reference</a></td>
+        <td data-label="Tool">Context7 + Web</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">2</td>
+        <td class="claim-text" data-label="Claim">All Apex SOQL queries use <code>WITH SECURITY_ENFORCED</code>, which is Salesforce's recommended way to enforce user permissions in SOQL.</td>
+        <td data-label="Verdict"><span class="badge badge-outdated">Outdated</span></td>
+        <td data-label="Source says">Salesforce now recommends <code>WITH USER_MODE</code> instead: "This method is recommended because it enforces FLS." <code>WITH SECURITY_ENFORCED</code> has fewer capabilities (only surfaces the first FLS error, doesn't cover polymorphic fields) and, per release notes, classes at API version 67.0+ that use <code>WITH SECURITY_ENFORCED</code> <strong>do not compile</strong> &mdash; the clause has been removed.</td>
+        <td class="source" data-label="Source"><a href="https://developer.salesforce.com/docs/platform/lwc/guide/apex-security.html" target="_blank" rel="noopener">Secure Apex Classes</a><br><a href="https://help.salesforce.com/s/articleView?id=release-notes.rn_apex_removed_withSecurityEnforced.htm&language=en_US&release=262&type=5" target="_blank" rel="noopener">Release note: WITH SECURITY_ENFORCED Is Removed</a></td>
+        <td data-label="Tool">Context7 + Web</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">3</td>
+        <td class="claim-text" data-label="Claim">Every LWC component property is decorated with <code>@track</code> so the UI re-renders when values change.</td>
+        <td data-label="Verdict"><span class="badge badge-contradicted">Contradicted</span></td>
+        <td data-label="Source says">Since Spring '20, all class fields in LWC are reactive by default &mdash; <code>@track</code> is not needed to re-render on reassignment. <code>@track</code> is only needed to detect mutations to properties <em>inside</em> an object or array, not for the field itself. A help.salesforce.com release note is titled "The @track Decorator Is No Longer [Required for most cases]."</td>
+        <td class="source" data-label="Source"><a href="https://developer.salesforce.com/docs/platform/lwc/guide/reactivity-fields.html" target="_blank" rel="noopener">Reactivity for Fields, Objects, and Arrays</a><br><a href="https://help.salesforce.com/s/articleView?id=release-notes.rn_lwc_track.htm&language=en_US&release=224&type=5" target="_blank" rel="noopener">Release note: @track Decorator</a></td>
+        <td data-label="Tool">Context7 + Web</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">4</td>
+        <td class="claim-text" data-label="Claim">Deployments use <code>sfdx force:source:deploy</code>, the current recommended Salesforce CLI command.</td>
+        <td data-label="Verdict"><span class="badge badge-outdated">Outdated</span></td>
+        <td data-label="Source says">The current CLI (sf v2) recommends <code>sf project deploy start</code>. The legacy <code>force:source:*</code> / <code>force:mdapi:*</code> commands still run for backward compatibility but Salesforce's own CLI reference lists them under "deploy Commands (Retiring)" and provides a migration guide to the sf-style equivalents.</td>
+        <td class="source" data-label="Source"><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_deploy_commands_unified.htm" target="_blank" rel="noopener">deploy Commands (Retiring)</a><br><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_migrate.htm" target="_blank" rel="noopener">Migrate sfdx-Style Commands</a></td>
+        <td data-label="Tool">Context7 + Web</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">5</td>
+        <td class="claim-text" data-label="Claim">Under Flex Credits, each standard agent action consumes 20 Flex Credits.</td>
+        <td data-label="Verdict"><span class="badge badge-confirmed">Confirmed</span></td>
+        <td data-label="Source says">The current Flex Credits Rate Card lists "Standard Action" under Agentforce Actions at a Production Environment multiplier of <strong>20</strong>.</td>
+        <td class="source" data-label="Source"><a href="https://www.salesforce.com/en-us/wp-content/uploads/sites/4/assets/pdf/agentforce/Flex-Credits-Rate-Card-06.17.2026.pdf" target="_blank" rel="noopener">Flex Credits Rate Card (updated 2026-06-17)</a></td>
+        <td data-label="Tool">Web (rate card PDF)</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">6</td>
+        <td class="claim-text" data-label="Claim">Testing the agent in a full sandbox does not consume any Flex Credits.</td>
+        <td data-label="Verdict"><span class="badge badge-contradicted">Contradicted</span></td>
+        <td data-label="Source says">The same rate card gives a <strong>Sandbox Environment</strong> multiplier of <strong>16</strong> for Standard and Custom Agentforce Actions &mdash; a discount versus the production rate of 20, not zero. The rate card explicitly notes the sandbox multiplier "applies to pre-production environments, which include sandboxes as well as scratch orgs."</td>
+        <td class="source" data-label="Source"><a href="https://www.salesforce.com/en-us/wp-content/uploads/sites/4/assets/pdf/agentforce/Flex-Credits-Rate-Card-06.17.2026.pdf" target="_blank" rel="noopener">Flex Credits Rate Card (updated 2026-06-17)</a></td>
+        <td data-label="Tool">Web (rate card PDF)</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">7</td>
+        <td class="claim-text" data-label="Claim">Consumption can be monitored in Digital Wallet by users with the View Consumption permission.</td>
+        <td data-label="Verdict"><span class="badge badge-confirmed">Confirmed</span></td>
+        <td data-label="Source says">Digital Wallet access, including Flex Credit consumption tracking, requires the <strong>View Consumption</strong> user permission: "Provides access to the Digital Wallet app and Consumption Analytics. Assign to: all Digital Wallet users who require access to view usage for consumption-based products."</td>
+        <td class="source" data-label="Source"><a href="https://help.salesforce.com/s/articleView?id=xcloud.wallet_permissions.htm&language=en_US&type=5" target="_blank" rel="noopener">Digital Wallet Permissions</a><br><a href="https://help.salesforce.com/s/articleView?id=release-notes.rn_general_dw_flex_credits.htm&language=en_US&release=256&type=5" target="_blank" rel="noopener">Monitor Flex Credits Consumption with Digital Wallet</a></td>
+        <td data-label="Tool">Web</td>
+      </tr>
+      <tr>
+        <td class="claim-num" data-label="#">8</td>
+        <td class="claim-text" data-label="Claim">The customer's current contract includes 1,000,000 Flex Credits, which covers the first year of usage.</td>
+        <td data-label="Verdict"><span class="badge badge-account">Needs account team</span></td>
+        <td data-label="Source says">The contracted credit quantity is an entitlement on the customer's Order Form, not something public Salesforce documentation can confirm. Using the public rate card, the "covers the first year" sizing looks worth re-checking &mdash; see the math below.
+          <div class="math-box">Assumption: 1 standard agent action per inquiry (a floor estimate; a real conversation is usually several actions).
+40,000 inquiries/month &times; 20 credits (production Standard Action) = 800,000 credits/month
+800,000 credits/month &times; 12 months = 9,600,000 credits/year
+
+1,000,000 contracted credits &divide; 800,000 credits/month &asymp; 1.25 months of coverage at 1 action/inquiry.</div>
+        </td>
+        <td class="source" data-label="Source"><a href="https://www.salesforce.com/en-us/wp-content/uploads/sites/4/assets/pdf/agentforce/Flex-Credits-Rate-Card-06.17.2026.pdf" target="_blank" rel="noopener">Flex Credits Rate Card (used only for the multiplier, not the contract fact)</a></td>
+        <td data-label="Tool">Web (rate card, math) + account team</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Fixes to make</h2>
+
+  <div class="fix-card">
+    <h3>Claim 2 &mdash; SOQL security clause</h3>
+    <p class="was">Was: "All Apex SOQL queries use <code>WITH SECURITY_ENFORCED</code>, which is Salesforce's recommended way to enforce user permissions in SOQL."</p>
+    <p class="now">Suggested: "All Apex SOQL queries use <code>WITH USER_MODE</code>, Salesforce's current recommended clause for enforcing object- and field-level security in SOQL (<code>WITH SECURITY_ENFORCED</code> is removed for API v67.0+)."</p>
+    <p class="why">Why: classes on API 67.0+ using <code>WITH SECURITY_ENFORCED</code> will fail to compile.</p>
+  </div>
+
+  <div class="fix-card">
+    <h3>Claim 3 &mdash; LWC reactivity</h3>
+    <p class="was">Was: "Every component property is decorated with <code>@track</code> so the UI re-renders when values change."</p>
+    <p class="now">Suggested: "Component properties are reactive by default; <code>@track</code> is applied only to the specific object/array-typed properties whose internal fields or elements need to trigger a re-render on mutation."</p>
+    <p class="why">Why: decorating every property is unnecessary since Spring '20 and adds noise without changing behavior for primitives.</p>
+  </div>
+
+  <div class="fix-card">
+    <h3>Claim 4 &mdash; CLI command</h3>
+    <p class="was">Was: "Deployments use <code>sfdx force:source:deploy</code>, the current recommended Salesforce CLI command."</p>
+    <p class="now">Suggested: "Deployments use <code>sf project deploy start</code>, the current sf CLI (v2) command; the legacy <code>force:source:deploy</code> command still runs but is listed as retiring."</p>
+    <p class="why">Why: avoids recommending a command Salesforce is phasing out.</p>
+  </div>
+
+  <div class="fix-card">
+    <h3>Claim 6 &mdash; sandbox Flex Credit consumption</h3>
+    <p class="was">Was: "Testing the agent in a full sandbox does not consume any Flex Credits."</p>
+    <p class="now">Suggested: "Testing the agent in a full sandbox consumes Flex Credits at a reduced multiplier (16 per standard action vs. 20 in production), not zero."</p>
+    <p class="why">Why: the current rate card lists a nonzero Sandbox Environment multiplier; presenting testing as free could lead to an under-forecasted credit budget.</p>
+  </div>
+
+  <div class="fix-card">
+    <h3>Claim 1 &mdash; Apex Data Cloud query method</h3>
+    <p class="was">Was: presenting <code>ConnectApi.CdpQuery.queryAnsiSqlV2</code> as the way to query Data Cloud from Apex.</p>
+    <p class="now">Suggested: mention the <strong>sfsqlquery</strong> namespace (e.g. <code>sfsqlquery.SqlStatement</code> / <code>SqlQueueable</code>) as Salesforce's currently recommended approach for new Apex integrations, noting <code>ConnectApi.CdpQuery</code> is kept for backward compatibility.</p>
+    <p class="why">Why: not wrong today, but a new build should start from the currently recommended API rather than the backward-compatibility one.</p>
+  </div>
+
+  <h2>Questions for the CSM</h2>
+
+  <div class="question-card">
+    <h3>Contracted Flex Credit quantity and burn-down</h3>
+    <p>Can you confirm the actual Flex Credit entitlement on the Order Form and the Order End Date? Using the public rate card and the ~40,000 inquiries/month figure in this doc, even a conservative estimate of one standard agent action per inquiry burns roughly 800,000 production credits a month &mdash; the full 1,000,000-credit figure in the doc would last about five weeks, not a year. Please validate the actual entitlement and expected action volume per inquiry before this figure goes back to the customer.</p>
+  </div>
+
+  <div class="question-card">
+    <h3>Sandbox testing budget</h3>
+    <p>Since sandbox testing is not free (16 credits/standard action), does the customer's contract carve out a separate testing/sandbox allocation, or does sandbox usage draw from the same 1,000,000-credit pool?</p>
+  </div>
+
+  <footer>
+    Generated by the Salesforce Solution Verifier &middot; sources restricted to developer.salesforce.com, help.salesforce.com, architect.salesforce.com, www.salesforce.com, and Context7 Salesforce libraries.
+  </footer>
+</div>
+
+<script>
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeToggle').textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+    try { localStorage.setItem('sv-theme', theme); } catch (e) {}
+  }
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'light';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('sv-theme'); } catch (e) {}
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+  })();
+</script>
+</body>
+</html>
