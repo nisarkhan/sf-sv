@@ -66,14 +66,25 @@ If the document estimates credits or cost, recompute from the rate card and
 show the math.
 
 ## Step 5: Report
-Write a self-contained HTML file named <document-name>-verification.html in
-the same folder as the document. Light mode by default with a dark/light
-toggle. Never use em dashes. Include:
-- a tally of verdicts
-- a table: claim, verdict, what the source says (in your own words),
-  source link, and which tool was used (Context7 or web)
-- "Fixes to make": suggested corrected wording for every Contradicted,
-  Outdated, or Partly right claim
-- "Questions for the CSM": every Needs account team item
+Do NOT design a report. Use the template that ships with this plugin:
+${CLAUDE_PLUGIN_ROOT}/assets/report-template.html
+
+1. Copy the template to <document-name>-verification.html in the same folder
+   as the document being verified.
+2. Replace ONLY the JSON inside <script id="report-data">. Keep every key.
+3. Never edit the CSS, the JavaScript, or the page structure. Never restyle,
+   recolour, or "improve" the layout. The template carries the team's house
+   style: gradient hero band, numbered section badges, white cards with
+   uppercase header bars, a two-column question grid, and a green closing
+   callout. Every report must look identical, so the layout is not yours
+   to change. If the user wants a different look, they edit the template.
+4. Verdict values must be spelled exactly: Confirmed, Partly right,
+   Contradicted, Outdated, Not found, Needs account team.
+5. Every claim needs sourceUrl (an allowed Salesforce domain) and tool
+   ("Context7", "Web", or "Context7 + Web"). Only a Not found or Needs
+   account team claim may have an empty sourceUrl.
+6. No em dashes anywhere in the JSON. Before saving, re-read the JSON and
+   replace any em dash with a comma or a hyphen.
+
 Then reply in chat with the tally, the top three fixes, and the report path.
 Do not edit the original document unless the user asks.

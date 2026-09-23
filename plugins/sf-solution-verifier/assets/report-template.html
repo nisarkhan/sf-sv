@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<!--
+  sf-solution-verifier report template. HOUSE STYLE, DO NOT REDESIGN.
+  RULES FOR CLAUDE:
+  1. Copy this file next to the document being verified, named
+     <document-name>-verification.html
+  2. Replace ONLY the JSON inside <script id="report-data">.
+  3. Never edit the CSS, the JavaScript, or the page structure. This layout
+     matches the team's customer-facing guide format and must stay identical
+     across every report.
+  4. Never use em dashes anywhere in the JSON. Use a comma or a hyphen.
+  5. Allowed verdict values, spelled exactly:
+     Confirmed | Partly right | Contradicted | Outdated | Not found | Needs account team
+-->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solution Verification Report</title>
+<style>
+  :root{
+    --page:#F1F5F9; --card:#FFFFFF; --ink:#032D60; --body:#2E3E4E; --soft:#64748B;
+    --line:#E2E8F0; --shadow:0 1px 3px rgba(3,45,96,.08);
+    --brand:#0176D3; --brand-deep:#032D60; --brand-tint:#EAF3FC;
+    --ok:#1B7A43; --ok-tint:#E3F5EA;
+    --part:#8A5200; --part-tint:#FDF3E2;
+    --bad:#B42318; --bad-tint:#FDECEA;
+    --old:#6941C6; --old-tint:#F0E9FD;
+    --none:#64748B; --none-tint:#EEF2F7;
+    --acct:#0176D3; --acct-tint:#EAF3FC;
+    --code-bg:#F1F5F9;
+    --sans:"Salesforce Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+  }
+  :root[data-theme="dark"]{
+    --page:#0B1220; --card:#141C2B; --ink:#DCE8F7; --body:#C3D0E0; --soft:#94A3B8;
+    --line:#233044; --shadow:0 1px 3px rgba(0,0,0,.4);
+    --brand:#5CA8F0; --brand-deep:#0A1E38; --brand-tint:#132A45;
+    --ok:#6CCB8F; --ok-tint:#13291D;
+    --part:#F0B35A; --part-tint:#2F2411;
+    --bad:#F58B80; --bad-tint:#33171A;
+    --old:#BFA4F5; --old-tint:#221A38;
+    --none:#94A3B8; --none-tint:#1B2536;
+    --acct:#5CA8F0; --acct-tint:#132A45;
+    --code-bg:#101828;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--body);font-family:var(--sans);font-size:16px;line-height:1.62;
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .hero{background:linear-gradient(105deg,#032D60 0%,#0B5CAB 55%,#0176D3 100%);color:#fff;
+    padding:calc(54px + env(safe-area-inset-top,0px)) 24px 54px;position:relative}
+  .hero-in{max-width:960px;margin:0 auto;padding-left:0}
+  .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:700;color:#BBDCFA;margin:0 0 12px}
+  .hero h1{font-size:clamp(1.8rem,4vw,2.5rem);line-height:1.16;margin:0 0 14px;font-weight:700;color:#fff}
+  .hero p{margin:0;color:#D6E9FB;font-size:1.03rem;max-width:62ch}
+  .toggle{position:absolute;top:calc(20px + env(safe-area-inset-top,0px));right:22px;font:inherit;font-size:.8rem;font-weight:600;
+    cursor:pointer;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);
+    border-radius:999px;padding:6px 14px}
+  .toggle:hover{background:rgba(255,255,255,.22)}
+  main{max-width:960px;margin:0 auto;padding:40px 24px 80px}
+  .sec{margin:0 0 44px}
+  .sec-head{display:flex;align-items:center;gap:14px;margin:0 0 18px}
+  .sec-num{flex:none;width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:1.05rem}
+  :root[data-theme="dark"] .sec-num{color:#0B1220}
+  .sec-head h2{margin:0;font-size:1.45rem;line-height:1.25;color:var(--ink);font-weight:700}
+  .lead{margin:0 0 18px;color:var(--soft)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin:0 0 16px;overflow:hidden}
+  .card-bar{padding:14px 22px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.76rem;font-weight:700;color:var(--soft)}
+  .card-body{padding:20px 22px}
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .stat{background:var(--page);border:1px solid var(--line);border-radius:10px;padding:16px 10px;text-align:center;
+    cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .stat:hover{border-color:var(--brand)}
+  .stat:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  .stat[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-tint)}
+  .stat .n{display:block;font-size:2rem;font-weight:700;line-height:1.05;margin-bottom:6px}
+  .stat .l{display:block;font-size:.74rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);line-height:1.3}
+  .stat.zero .n{color:var(--soft)}
+  .n-confirmed{color:var(--ok)} .n-partly{color:var(--part)} .n-contradicted{color:var(--bad)}
+  .n-outdated{color:var(--old)} .n-notfound{color:var(--none)} .n-account{color:var(--acct)}
+  @media(max-width:860px){.stats{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:460px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .meta{margin:16px 0 0;font-size:.9rem;color:var(--soft)}
+  .filternote{margin:6px 0 0;font-size:.85rem;color:var(--soft)}
+  .claim{display:flex;flex-direction:column}
+  .claim-head{display:flex;align-items:flex-start;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .claim-num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--brand-tint);color:var(--brand);
+    display:grid;place-items:center;font-weight:700;font-size:.9rem}
+  .claim-title{flex:1 1 320px;margin:0;font-weight:700;color:var(--ink);font-size:1.02rem;line-height:1.4}
+  .badge{flex:none;font-size:.76rem;font-weight:700;padding:5px 13px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
+  .v-confirmed{background:var(--ok-tint);color:var(--ok)}
+  .v-partly{background:var(--part-tint);color:var(--part)}
+  .v-contradicted{background:var(--bad-tint);color:var(--bad)}
+  .v-outdated{background:var(--old-tint);color:var(--old)}
+  .v-notfound{background:var(--none-tint);color:var(--none)}
+  .v-account{background:var(--acct-tint);color:var(--acct)}
+  .claim-body{padding:18px 22px}
+  .claim-body p{margin:0 0 12px}
+  .srcline{margin:0;font-size:.88rem;color:var(--soft)}
+  .srcline a{color:var(--brand);text-decoration:none;font-weight:600}
+  .srcline a:hover{text-decoration:underline}
+  .tool{display:inline-block;margin-left:10px;padding:2px 9px;border-radius:999px;background:var(--none-tint);
+    color:var(--soft);font-size:.76rem;font-weight:600}
+  .fix .card-body{padding:18px 22px}
+  .was{margin:0 0 10px;color:var(--soft);font-size:.93rem}
+  .was b,.now b{color:var(--ink)}
+  .now{margin:0;color:var(--body);font-weight:600;border-left:3px solid var(--brand);padding-left:14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 22px}
+  .q{background:var(--page);border-radius:10px;padding:14px 16px}
+  .q h4{margin:0 0 6px;color:var(--ink);font-size:.97rem}
+  .q p{margin:0;font-size:.93rem;color:var(--soft)}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .callout{background:var(--ok-tint);border:1px solid var(--ok);border-radius:12px;padding:20px 22px;margin:34px 0 0}
+  .callout h3{margin:0 0 8px;color:var(--ok);font-size:1.08rem}
+  .callout p{margin:0;color:var(--body)}
+  .empty{color:var(--soft);font-style:italic;padding:18px 22px;margin:0}
+  code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+  footer{max-width:960px;margin:0 auto;padding:0 24px 60px;color:var(--soft);font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <button class="toggle" id="themeToggle" aria-label="Switch between light and dark mode">Dark mode</button>
+  <div class="hero-in">
+    <p class="eyebrow">Solution Verification Report</p>
+    <h1 id="heroTitle">Solution Verification Report</h1>
+    <p id="heroSub"></p>
+  </div>
+</header>
+
+<main>
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">1</div><h2>Verification Summary</h2></div>
+    <div class="card"><div class="card-bar">Results at a glance</div>
+      <div class="card-body">
+        <div class="stats" id="stats"></div>
+        <p class="meta" id="sourcesLine"></p>
+        <p class="filternote">Select a verdict above to show only those claims. Select it again to show all.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Claim by Claim</h2></div>
+    <p class="lead">Every checkable statement in the document, with the official Salesforce source behind each verdict.</p>
+    <div id="claims"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Fixes to Make</h2></div>
+    <p class="lead">Suggested wording for each claim that came back Contradicted, Outdated, or Partly right.</p>
+    <div id="fixes"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">4</div><h2>Questions for the CSM</h2></div>
+    <p class="lead">Contract and entitlement details that no public document can settle.</p>
+    <div class="card"><div class="card-bar">Ask these before the document goes out</div>
+      <div id="csm"></div>
+    </div>
+    <div class="callout">
+      <h3>Before this goes to the customer</h3>
+      <p id="calloutText"></p>
+    </div>
+  </section>
+</main>
+
+<footer id="foot"></footer>
+
+<script id="report-data" type="application/json">
+{
+  "document": "examples/test-solution.md",
+  "documentTitle": "Northwind Health Member Service Agent",
+  "verifiedOn": "2026-09-22",
+  "rateCardDate": "2026-06-17",
+  "claims": [
+    {
+      "claim": "Short restatement of the claim from the document.",
+      "verdict": "Confirmed",
+      "says": "What the official source says, in your own words.",
+      "sourceTitle": "Page title",
+      "sourceUrl": "https://developer.salesforce.com/...",
+      "tool": "Context7"
+    }
+  ],
+  "fixes": [
+    { "was": "The wording currently in the document.", "now": "Suggested replacement wording." }
+  ],
+  "csmQuestions": [
+    "A question only the account team can answer."
+  ]
+}
+</script>
+
+<script>
+(function(){
+  var V = {"Confirmed":"v-confirmed","Partly right":"v-partly","Contradicted":"v-contradicted",
+           "Outdated":"v-outdated","Not found":"v-notfound","Needs account team":"v-account"};
+  function esc(s){ var d=document.createElement("div"); d.textContent = s==null?"":String(s); return d.innerHTML; }
+  var d={}; try{ d=JSON.parse(document.getElementById("report-data").textContent); }catch(e){}
+  var claims=d.claims||[], fixes=d.fixes||[], qs=d.csmQuestions||[];
+
+  document.getElementById("heroTitle").textContent = d.documentTitle || "Solution Verification Report";
+  document.getElementById("heroSub").textContent =
+    "Checked against official Salesforce documentation only. Source document: " + (d.document||"") + ".";
+
+  var counts={}; claims.forEach(function(c){ counts[c.verdict]=(counts[c.verdict]||0)+1; });
+  var stats=document.getElementById("stats"), active=null;
+  Object.keys(V).forEach(function(v){
+    var n = counts[v]||0;
+    var b=document.createElement("button");
+    b.type="button"; b.className="stat"+(n?"":" zero"); b.setAttribute("aria-pressed","false");
+    b.innerHTML='<span class="n n-'+V[v].slice(2)+'">'+n+'</span><span class="l">'+v+'</span>';
+    b.addEventListener("click", function(){
+      if(!n) return;
+      active = (active===v) ? null : v;
+      Array.prototype.forEach.call(stats.children, function(el,i){
+        el.setAttribute("aria-pressed", Object.keys(V)[i]===active ? "true" : "false");
+      });
+      Array.prototype.forEach.call(document.getElementById("claims").children, function(card){
+        card.style.display = (!active || card.getAttribute("data-verdict")===active) ? "" : "none";
+      });
+    });
+    stats.appendChild(b);
+  });
+
+  document.getElementById("sourcesLine").textContent =
+    claims.length + " claims reviewed. Verified " + (d.verifiedOn||"") +
+    (d.rateCardDate ? ". Flex Credits Rate Card dated " + d.rateCardDate + "." : ".");
+
+  document.getElementById("claims").innerHTML = claims.length ? claims.map(function(c,i){
+    var cls=V[c.verdict]||"v-notfound";
+    var src = c.sourceUrl
+      ? 'Source: <a href="'+esc(c.sourceUrl)+'">'+esc(c.sourceTitle||c.sourceUrl)+'</a>'
+      : 'Source: not publicly available';
+    var tool = c.tool ? '<span class="tool">'+esc(c.tool)+'</span>' : '';
+    return '<div class="card claim" data-verdict="'+esc(c.verdict)+'"><div class="claim-head">'+
+      '<div class="claim-num">'+(i+1)+'</div>'+
+      '<p class="claim-title">'+esc(c.claim)+'</p>'+
+      '<span class="badge '+cls+'">'+esc(c.verdict)+'</span></div>'+
+      '<div class="claim-body"><p>'+esc(c.says)+'</p>'+
+      '<p class="srcline">'+src+tool+'</p></div></div>';
+  }).join("") : '<div class="card"><p class="empty">No claims found in the document.</p></div>';
+
+  document.getElementById("fixes").innerHTML = fixes.length ? fixes.map(function(f){
+    return '<div class="card fix"><div class="card-body">'+
+      '<p class="was"><b>Currently:</b> '+esc(f.was)+'</p>'+
+      '<p class="now"><b>Change to:</b> '+esc(f.now)+'</p></div></div>';
+  }).join("") : '<div class="card"><p class="empty">Nothing to fix.</p></div>';
+
+  document.getElementById("csm").innerHTML = qs.length
+    ? '<div class="grid">'+qs.map(function(q,i){
+        return '<div class="q"><h4>Question '+(i+1)+'</h4><p>'+esc(q)+'</p></div>';
+      }).join("")+'</div>'
+    : '<p class="empty">No open questions for the account team.</p>';
+
+  document.getElementById("calloutText").textContent =
+    "Pricing and consumption rules change several times a year. This report used the rate card dated " +
+    (d.rateCardDate||"the date above") +
+    ", so re-run the check if the document is reused later. Contract entitlements always need the account team to confirm.";
+
+  document.getElementById("foot").textContent =
+    "Generated by sf-solution-verifier on " + (d.verifiedOn||"") +
+    ". Verdicts reflect official Salesforce sources only: developer, help, architect, and www.salesforce.com.";
+
+  var root=document.documentElement, btn=document.getElementById("themeToggle");
+  function apply(t){ root.setAttribute("data-theme",t); btn.textContent = t==="dark"?"Light mode":"Dark mode"; }
+  var saved="light"; try{ saved=localStorage.getItem("sfsv-report-theme")||"light"; }catch(e){}
+  apply(saved);
+  btn.addEventListener("click",function(){
+    var n=root.getAttribute("data-theme")==="dark"?"light":"dark";
+    apply(n); try{ localStorage.setItem("sfsv-report-theme",n); }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
