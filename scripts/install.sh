@@ -18,6 +18,17 @@ done
 
 SHELL_RC="$HOME/.zshrc"; [ -n "${BASH_VERSION:-}" ] && [ -f "$HOME/.bashrc" ] && SHELL_RC="$HOME/.bashrc"
 say()  { printf "\n\033[1m%s\033[0m\n" "$1"; }
+load_node() {
+  command -v npx >/dev/null 2>&1 && return 0
+  for f in "$HOME/.nvm/nvm.sh" "/opt/homebrew/opt/nvm/nvm.sh" "/usr/local/opt/nvm/nvm.sh"; do
+    [ -s "$f" ] && . "$f" >/dev/null 2>&1 && break
+  done
+  command -v fnm >/dev/null 2>&1 && eval "$(fnm env 2>/dev/null)" >/dev/null 2>&1
+  for d in /opt/homebrew/bin /usr/local/bin; do
+    [ -x "$d/npx" ] && PATH="$d:$PATH" && export PATH
+  done
+  command -v npx >/dev/null 2>&1
+}
 ok()   { printf "  ok    %s\n" "$1"; }
 warn() { printf "  note  %s\n" "$1"; }
 fail() { printf "  stop  %s\n" "$1"; exit 1; }
@@ -25,7 +36,7 @@ fail() { printf "  stop  %s\n" "$1"; exit 1; }
 say "1. Checking tools"
 command -v claude >/dev/null || fail "Claude Code not found. Install it, then run this again."
 ok "Claude Code $(claude --version 2>/dev/null | head -1)"
-if command -v node >/dev/null; then ok "Node $(node -v)"; else warn "Node not found. Fine for the hosted server, needed only for --oauth."; fi
+if load_node; then ok "Node $(node -v 2>/dev/null || echo present)"; else warn "Node not found. Not needed for the key route, only for --oauth."; fi
 
 say "2. Setting up Context7 access"
 add_to_rc() { # name value
@@ -45,9 +56,20 @@ case "$MODE" in
     ok "using the team gateway, no personal key needed"
     ;;
   oauth)
-    command -v npx >/dev/null || fail "npx not found. Install Node 18 or higher."
-    npx -y ctx7 setup
-    ok "signed in to Context7, key stored by the CLI"
+    if load_node; then
+      npx -y ctx7 setup
+      ok "signed in to Context7, key stored by the CLI"
+    else
+      warn "npx not found, so browser sign-in is unavailable on this machine."
+      printf "  Node may be installed but not on this shell's PATH. Check with:\n"
+      printf "    node -v ; which npx\n"
+      printf "  To install Node:  brew install node\n\n"
+      printf "  You can continue now with an API key instead, which needs no Node.\n"
+      printf "  Paste your Context7 API key, or press Enter to stop and install Node: "
+      read -rs KEY; printf "\n"
+      [ -n "$KEY" ] || fail "stopped. Install Node, then run: ./scripts/install.sh --oauth"
+      add_to_rc CONTEXT7_API_KEY "$KEY"
+    fi
     ;;
   *)
     if [ -n "${CONTEXT7_API_KEY:-}" ]; then
